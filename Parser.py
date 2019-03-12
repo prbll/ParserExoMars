@@ -1,30 +1,44 @@
 import sys
 import os
 import re
-
-def main():
-    if len(sys.argv) != 2:
-        print("You should pass only 1 argument: file name.")
-        exit(1)
-    try:
-        input_file = open(sys.argv[1], "r")
-    except FileNotFoundError:
-        print("File is not found.")
-        exit(2)
-
-    reg = re.compile("[0-9]{4} [A-Z]{3} [0-9]{1,2} [0-9]{2}:[0-9]{2}:[0-9]{2}")
-    output_file = open(os.path.splitext(sys.argv[1])[0]+"_parsed.txt", "w")
-    #output_file.write("UTC Board Time, Ground latitude and longitude, Sun latitude and longitude(Lat sub_SOLAR and Lon "
-    #                  "sub_SOLAR), Device orientation latitude and longitude")
-    output_file.write("UTC Board Time" + "\t" + "Ground latitude" + "\t" +
-                      "Ground longitude" + "\t" + "Sun latitude(Lat sub_SOLAR)" + "\t" + "Sun longitude(Lon sub_SOLAR)"
-                      + "\t" + "Device orientation latitude" + "\t" + "Device orientation longitude" + "\n")
-    data = input_file.read()
-    #records = re.findall(reg, data)
-    for record in reg.finditer(data):
-        output_file.write(record.group())
-        print(record.start())
-        output_file.write("\n")
+import RecordCreator
 
 
-main()
+class Parser:
+    @staticmethod
+    def parse():
+        if len(sys.argv) != 2:
+            print("You should pass only 1 argument: file name.")
+            exit(1)
+        try:
+            input_file = open(sys.argv[1], "r")
+        except FileNotFoundError:
+            print("File is not found.")
+            exit(2)
+        except Exception as message:
+            print("Something went wrong: " + str(message))
+
+        reg = re.compile("[0-9]{4} [A-Z]{3} [0-9]{1,2} [0-9]{2}:[0-9]{2}:[0-9]{2}")
+        output_file = open(os.path.splitext(sys.argv[1])[0]+"_parsed.txt", "w")
+        header = ["UTC Board Time", "Ground latitude", "Ground longitude", "Sun latitude(Lat sub_SOLAR)",
+                "Sun longitude(Lon sub_SOLAR", "Device orientation latitude", "Device orientation longitude"]
+        output_file.write(RecordCreator.RecordCreator.CreateRecord(values=header))
+        data = input_file.read()
+        last_record = 0
+        for record in reg.finditer(data):
+            if last_record == 0:
+                output_file.write(record.group() + "\t")
+                last_record = record.start()
+                continue
+            values = list(map(str.strip, list(filter(None, data[last_record:record.start()-1].split('  ')))))
+            amount_of_values = len(values)
+            body = [values[2], values[3], values[amount_of_values-3], values[amount_of_values-2], values[4], values[5]]
+            output_file.write(RecordCreator.RecordCreator.CreateRecord(values=body))
+            output_file.write(record.group() + "\t")
+            last_record = record.start()
+
+        values = list(map(str.strip, list(filter(None, data[last_record:].split('  ')))))
+        amount_of_values = len(values)
+        body = [values[2], values[3], values[amount_of_values - 3], values[amount_of_values - 2], values[4], values[5]]
+        output_file.write(RecordCreator.RecordCreator.CreateRecord(body))
+
