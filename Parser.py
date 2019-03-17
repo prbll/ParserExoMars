@@ -4,6 +4,7 @@ import re
 import RecordCreator
 
 
+# Парсер файла, использующий стандартные функции языка Python
 class Parser:
     @staticmethod
     def parse():

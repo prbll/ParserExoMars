@@ -1,3 +1,4 @@
+# Создатель записей для выходного файла
 class RecordCreator:
     @staticmethod
     def CreateRecord(values):

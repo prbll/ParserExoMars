@@ -4,6 +4,7 @@ import os
 import csv
 
 
+# Парсер файла, использующий библиотеку Pandas
 class PandasParser:
     @staticmethod
     def parse():
