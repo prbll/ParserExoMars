@@ -1,0 +1,65 @@
+binary - binary geometry files, appear soon
+text   - text geometry files
+nadir  - nadir text geometry text files
+sun    - limb solar occultations text geometry files
+angles - various angles
+
+"nadir" *.gen geometry columns:
+#  rec      id      time_i   dist_sun    spc_alt  spc_lon spc_lat    sun_occ x       dist      lon     lat      ls   tloc  theta0   theta   phase    elev  jd-2457462                     utc    time_onbs_c              et
+#    1       2           3          4          5        6       7          8 9         10       11      12      13     14      15      16      17      18          19                      20             21              22
+ 1 rec           - record number in exm file
+ 2 id            - interferogram ID
+ 3 time_i        - internal TIRVIM IFG start time (as it is in EXM file)
+ 4 dist_sun      - distance from spacecraft to Sun, a.u. 
+ 5 spc_alt       - distance from spacecraft to Mars ellipsoid
+ 6 spc_lon       - subspacecraft point longitude
+ 7 spc_lat       - subspacecraft point latitude
+ 8 sun_occ       - angle between Sun and occultation channel exis, may be useful to sort out cases when the sun is in the solar channel FOV during nadir measurements
+ 9 x             - surface intersection flag for scanner FOV center (0-BB, 1-surface (Mars ellipsoid), 2-limb, 3-inverse direction from limb)
+10 dist          - distance from TGO to point O - the center of the TIRVIM FOV footprint on Mars ellipsoid
+11 lon           - longitude of point O
+12 lat           - latitude of point O
+13 ls            - season Ls at point O
+14 tloc          - local time at point O
+15 thet0         - Sun zenith angle at point O
+16 theta         - TGO zenith angle at point O
+17 phase         - phase Sun-O-TGO
+18 elev          - surface elevation above Mars areoid at O, with resolution of 1/4 degree lon-lat
+19 jd-2457462    - Julian date since TGO launch day 2016-03-14T12:00:00 (exact date is 12:31MSK)
+20 utc           - UTC, caclulated from time_onbs_c
+21 time_onbs_c   - spacecraft clock string used by SPICE to convert it to ephemeris seconds past J2000 (ET), calculated approximately for measurement mean time (!)
+22 et            - ephemeris seconds past J2000 (ET)
+
+
+"sun" *.ges geometry columns:
+#  rec      id      time_i   dist_sun    spc_alt  spc_lon spc_lat   asun_sca   asun_sol  x xs     dist_s    lon_s   lat_s    ls_s tloc_s thet0_s theta_s phase_s   alt_s  elev_s   are_s  jd-2457462                     utc    time_onbs_c              et
+#    1       2           3          4          5        6       7          8          9 10 11         12       13      14      15     16      17      18      19      20      21      22          23                      24             25              26
+ 1 rec           - record number in exm file
+ 2 id            - interferogram id
+ 3 time_i        - internal TIRVIM IFG start time (as it is in EXM file)
+ 4 dist_sun      - distance from spacecraft to Sun, a.u. 
+ 5 spc_alt       - distance from spacecraft to Mars ellipsoid
+ 6 spc_lon       - subspacecraft point longitude
+ 7 spc_lat       - subspacecraft point latitude
+ 8 sun_sca       - angle between Sun and scanner axis (approximate, to be improved!)
+ 9 sun_occ       - angle between Sun and occultation channel exis
+10 x             - surface intersection flag for scanner FOV center (1-surface (Mars ellipsoid), 2-limb, 3-inverse direction from limb)
+11 xs            - surface intersection flag for Sun center
+12 dist_s        - distance to limb
+13 lon_s         - longitude of point X on Mars ellipsoid nearest to the ray TGO-Sun
+14 lat_s         - latitude of point X
+15 ls_s          - season Ls at point X
+16 tloc_s        - local time at point X
+17 thet0_s       - Sun zenith angle at point X
+18 theta_s       - TGO zenith angle at point X
+19 phase_s       - phase Sun-X-TGO
+20 alt_s         - distance from the ray TGO-Sun to Mars areoid (corresponding to ellipsoid point X), 0 if it intersects the ellipsoid 
+21 elev_s        - surface elevation above Mars areoid at X, with resolution of 1/4 degree lon-lat
+22 are_s         - areoid elevation above ellipsoid 
+23 jd-2457462    - Julian date since TGO launch day 2016-03-14T12:00:00 (exact date is 12:31MSK)
+24 utc           - UTC, caclulated from time_onbs_c
+25 time_onbs_c   - spacecraft clock string used by SPICE to convert it to ephemeris seconds past J2000 (ET), calculated approximately for measurement mean time (!)
+26 et            - ephemeris seconds past J2000 (ET)
+
+
+
