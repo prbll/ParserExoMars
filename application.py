@@ -1,5 +1,5 @@
 import Parser
-import PandasParser
+import MirParser
 import TirParser
 
 # Вызов парсеров
