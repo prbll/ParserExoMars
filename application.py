@@ -1,10 +1,7 @@
-import Parser
 import MirParser
-import TirParser
+#import TirParser
 
 # Вызов парсеров
-#Parser.Parser.parse()
-#parser = PandasParser.PandasParser()
-parser = TirParser.TirParser()
-parser.parse()
-
+parser = MirParser.PandasParser()
+#parser = TirParser.TirParser()
+parser.do_work()

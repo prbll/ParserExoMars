@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
 
 import requests
-import json
+from ConfigReader import ConfigReader
+from Logger import Logger
 from datetime import datetime
 from dateutil import tz
+import sys
 
 
 class Client:
     def __init__(self):
-        self.configuration = ConfigReader().get_config()
+        self.configuration = ConfigReader(sys.argv[1]).get_config()
+        self.logger = Logger(self.configuration["logFileName"]).get_logger()
         self.data = ''
         date = datetime.utcnow()
         self.startDateTime = datetime(date.year, date.month, date.day, tzinfo=tz.tzutc()).strftime('%Y-%m-%dT%H:%M:%S.%fZ')\
@@ -17,7 +20,7 @@ class Client:
             if "endDateTime" not in self.configuration else self.configuration["endDateTime"]
 
     def get_data(self):
-        with open(self.configuration["loggingFileName"], 'a+') as log:
+        try:
             json_body = RequestBodyBuilder() \
                 .add_parameter('BeginDate', self.startDateTime) \
                 .add_parameter('EndDate', self.endDateTime)\
@@ -26,15 +29,20 @@ class Client:
                 .add_parameter('Step', self.configuration["step"])\
                 .build()
             guid = requests.post(self.configuration["serviceUrl"] + '/Task', json=json_body).json()["GUID"]
-            log.write("[%s] Task request was sent successfully. GUID: %s.\n" % (datetime.utcnow(), guid))
+            self.logger.log_info("[%s] Task request was sent successfully. GUID: %s." % (datetime.utcnow(), guid))
             data = requests.get(self.configuration["serviceUrl"] + '/GetFile', {'guid': guid})
             while data.status_code == requests.codes.no_content:
                 data = requests.get(self.configuration["serviceUrl"] + '/GetFile', {'guid': guid})
 
-            log.write("[%s] Data was received successfully. Start DateTime: %s, End DateTime: %s.\n"
+            self.logger.log_info("[%s] Data was received successfully. Start DateTime: %s, End DateTime: %s."
                       % (datetime.utcnow(), self.startDateTime, self.endDateTime))
             self.data = data.text
-        return self
+            return self
+
+        except Exception as message:
+            self.logger.log_info("Something went wrong: %s." % str(message))
+            print("Something went wrong: " + str(message))
+            exit(-3)
 
     def to_file(self):
         with open(self.startDateTime.replace(':', '-') + '_' + self.endDateTime.replace(':', '-') + '_Geometry.txt', "w+") as file:
@@ -54,25 +62,8 @@ class RequestBodyBuilder:
         return self.body
 
 
-class Logger:
-    @staticmethod
-    def initialize_logging():
-        with open(ConfigReader().get_config()["loggingFileName"], 'a+'):
-            pass
+if len(sys.argv) != 2:
+    print("You should pass only 1 argument: configuration file.")
+    exit(-1)
 
-
-class ConfigReader:
-    def __init__(self):
-        with open('ServiceClientConfig.json') as configuration:
-            self.config = json.load(configuration)
-
-    def get_config(self):
-        return self.config
-
-
-Logger.initialize_logging()
-try:
-    Client().get_data().to_file()
-except Exception as ex:
-    with open(ConfigReader().get_config()["loggingFileName"], 'a+') as logger:
-        logger.write("[%s] Error occurred: %s.\n" % (datetime.utcnow(), ex))
+Client().get_data().to_file()

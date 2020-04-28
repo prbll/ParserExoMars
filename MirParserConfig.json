@@ -1,0 +1,6 @@
+{
+    "logFileName": "MirParserLog.txt",
+    "inputFolder":  "/data/atrokhov/RawData",
+    "outputFolder": "/data/atrokhov/Output",
+    "skipProcessed": 1
+}
