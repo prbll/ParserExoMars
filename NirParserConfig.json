@@ -1,0 +1,6 @@
+{
+    "logFileName": "NirParserLog.txt",
+    "inputFolder":  "/data/atrokhov/NirRawData",
+    "outputFolder": "/data/atrokhov/NirOutput",
+    "skipProcessed": 1
+}
