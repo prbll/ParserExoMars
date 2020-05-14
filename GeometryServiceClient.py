@@ -1,23 +1,34 @@
-#!/usr/bin/env python3
+#!/usr/local/bin/env python3
 
 import requests
 from ConfigReader import ConfigReader
 from Logger import Logger
-from datetime import datetime
+from datetime import datetime, timedelta
 from dateutil import tz
 import sys
+import os
 
 
 class Client:
     def __init__(self):
         self.configuration = ConfigReader(sys.argv[1]).get_config()
         self.logger = Logger(self.configuration["logFileName"]).get_logger()
+        self.output_folder = self.configuration["outputFolder"]
         self.data = ''
         date = datetime.utcnow()
-        self.startDateTime = datetime(date.year, date.month, date.day, tzinfo=tz.tzutc()).strftime('%Y-%m-%dT%H:%M:%S.%fZ')\
-            if "startDateTime" not in self.configuration else self.configuration["startDateTime"]
-        self.endDateTime = date.strftime('%Y-%m-%dT%H:%M:%S.%fZ')\
-            if "endDateTime" not in self.configuration else self.configuration["endDateTime"]
+        self.request_interval = datetime.strptime(self.configuration["requestInterval"], "%H:%M:%S")
+        if self.request_interval:
+            delta = timedelta(hours=self.request_interval.hour,
+                              minutes=self.request_interval.minute,
+                              seconds=self.request_interval.second)
+            self.startDateTime = (date - delta).strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+            self.endDateTime = date.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+        else:
+            self.startDateTime = datetime(date.year, date.month, date.day, tzinfo=tz.tzutc()).strftime(
+                '%Y-%m-%dT%H:%M:%S.%fZ') \
+                if "startDateTime" not in self.configuration else self.configuration["startDateTime"]
+            self.endDateTime = date.strftime('%Y-%m-%dT%H:%M:%S.%fZ') \
+                if "endDateTime" not in self.configuration else self.configuration["endDateTime"]
 
     def get_data(self):
         try:
@@ -30,11 +41,14 @@ class Client:
                 .build()
             guid = requests.post(self.configuration["serviceUrl"] + '/Task', json=json_body).json()["GUID"]
             self.logger.log_info("[%s] Task request was sent successfully. GUID: %s." % (datetime.utcnow(), guid))
+            print("[%s] Task request was sent successfully. GUID: %s." % (datetime.utcnow(), guid))
             data = requests.get(self.configuration["serviceUrl"] + '/GetFile', {'guid': guid})
             while data.status_code == requests.codes.no_content:
                 data = requests.get(self.configuration["serviceUrl"] + '/GetFile', {'guid': guid})
 
             self.logger.log_info("[%s] Data was received successfully. Start DateTime: %s, End DateTime: %s."
+                      % (datetime.utcnow(), self.startDateTime, self.endDateTime))
+            print("[%s] Data was received successfully. Start DateTime: %s, End DateTime: %s."
                       % (datetime.utcnow(), self.startDateTime, self.endDateTime))
             self.data = data.text
             return self
@@ -45,7 +59,9 @@ class Client:
             exit(-3)
 
     def to_file(self):
-        with open(self.startDateTime.replace(':', '-') + '_' + self.endDateTime.replace(':', '-') + '_Geometry.txt', "w+") as file:
+        file_name = self.startDateTime.replace(':', '-') + '_' + self.endDateTime.replace(':', '-') + '_Geometry.txt'
+        destination_file = os.path.join(self.output_folder, file_name)
+        with open(destination_file, "w+") as file:
             file.write(self.data)
         return
 
