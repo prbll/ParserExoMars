@@ -15,7 +15,8 @@ class Client:
         self.logger = Logger(self.configuration["logFileName"]).get_logger()
         self.output_folder = self.configuration["outputFolder"]
         self.data = ''
-        date = datetime.utcnow()
+        date = datetime.now()
+        date = date.replace(minute=0, second=0, microsecond=0)
         self.request_interval = datetime.strptime(self.configuration["requestInterval"], "%H:%M:%S")
         if self.request_interval:
             delta = timedelta(hours=self.request_interval.hour,
